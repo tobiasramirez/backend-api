@@ -14,11 +14,29 @@ router.get('/:id', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  const { description, userId, tagIds } = req.body;
+  const { description, userId, tagIds = [], tagNames = [] } = req.body;
   if (!description || !userId) return res.status(400).json({ error: 'Faltan datos' });
+
   try {
     const nuevo = await Post.create({ description, UserId: userId });
-    if (tagIds && tagIds.length > 0) await nuevo.setTags(tagIds);
+
+    let idsFinales = [...tagIds];
+
+    if (tagNames.length > 0) {
+      for (const nombre of tagNames) {
+        const nombreLimpio = nombre.trim().toLowerCase();
+        if (!nombreLimpio) continue;
+
+        const [tag] = await Tag.findOrCreate({
+          where: { name: nombreLimpio }
+        });
+
+        idsFinales.push(tag.id);
+      }
+    }
+
+    if (idsFinales.length > 0) await nuevo.setTags(idsFinales);
+
     const creado = await Post.findByPk(nuevo.id, { include: [Tag] });
     res.status(201).json(creado);
   } catch (e) {
