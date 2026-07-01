@@ -1,15 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const { Post, User, Tag } = require('../models');
+const { Post, User, Tag, PostImage, Comment } = require('../models');
 
 router.get('/', async (req, res) => {
   const where = req.query.userId ? { UserId: req.query.userId } : {};
-  const posts = await Post.findAll({ where, include: [User, Tag] });
+  const posts = await Post.findAll({ where, include: [User, Tag, PostImage,Comment] });
   res.json(posts);
 });
 
 router.get('/:id', async (req, res) => {
-  const post = await Post.findByPk(req.params.id, { include: [User, Tag] });
+  const post = await Post.findByPk(req.params.id, { include: [User, Tag, PostImage,Comment] });
   post ? res.json(post) : res.status(404).json({ error: 'Post no encontrado' });
 });
 
